@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+</head>
+<body>
+    <h1>Welcome to the Chat Room</h1>
+    <form id="joinForm">
+        <input type="text" id="username" placeholder="Enter your username" required>
+        <input type="text" id="room" placeholder="Enter room name" required>
+        <button type="submit">Join</button>
+    </form>
+    <div id="chat">
+        <ul id="messages"></ul>
+        <form id="messageForm">
+            <input type="text" id="message" placeholder="Type your message" required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var username;
+        var room;
+
+        document.getElementById('joinForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            username = document.getElementById('username').value;
+            room = document.getElementById('room').value;
+            socket.emit('join_room', {'username': username, 'room': room});
+        });
+
+        document.getElementById('messageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let message = document.getElementById('message').value;
+            socket.emit('send_message', {'username': username, 'message': message, 'room': room});
+            document.getElementById('message').value = '';
+        });
+
+        socket.on('joined_room', function(data) {
+            document.getElementById('messages').innerHTML += '<li><em>' + data.username + ' joined the room.</em></li>';
+        });
+
+        socket.on('left_room', function(data) {
+            document.getElementById('messages').innerHTML += '<li><em>' + data.username + ' left the room.</em></li>';
+        });
+
+        socket.on('receive_message', function(data) {
+            document.getElementById('messages').innerHTML += '<li><strong>' + data.username + ': </strong>' + data.message + '</li>';
+        });
+    </script>
+</body>
+</html>
